@@ -79,10 +79,6 @@ body{
   transition:opacity 0.6s ease;
 }
 
-.three-canvas{
-  position:absolute;inset:0;width:100%;height:100%;z-index:1;
-}
-
 /* ===== Nav ===== */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:500;
@@ -271,39 +267,6 @@ p.body-text{
   text-transform:uppercase;text-decoration:none;display:flex;align-items:center;gap:10px;
 }
 
-/* ===== Product sections (Halo / Vega) ===== */
-.product-section{
-  padding:0;min-height:100vh;
-  background:#000;
-}
-.product-canvas-wrap{
-  position:absolute;inset:0;
-}
-.product-header{
-  position:absolute;top:60px;left:0;right:0;text-align:center;z-index:8;
-}
-.product-header h2{
-  font-size:clamp(40px,7vw,84px);font-weight:600;letter-spacing:0.04em;
-}
-.product-card{
-  position:absolute;left:48px;bottom:60px;z-index:8;
-  background:rgba(8,10,12,0.72);border:1px solid var(--panel-border);
-  border-radius:8px;padding:30px 34px;backdrop-filter:blur(10px);
-  max-width:400px;
-}
-.product-card .tag{
-  font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;color:var(--cyan);
-  text-transform:uppercase;margin-bottom:10px;
-}
-.product-card h3{font-size:clamp(26px,3.4vw,34px);line-height:1.1;margin-bottom:14px;font-weight:700;}
-.product-card .status{
-  font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);
-  display:flex;align-items:center;gap:8px;margin-bottom:22px;letter-spacing:0.04em;
-}
-.status-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse 1.8s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-.product-card .row{display:flex;gap:12px;flex-wrap:wrap;}
-
 /* ===== Section: One platform ===== */
 #platform h2{font-size:clamp(32px,5vw,56px);margin-bottom:18px;}
 #platform > .section-inner > p{font-family:var(--font-mono);font-size:15px;color:var(--ink-dim);max-width:560px;margin-bottom:44px;line-height:1.6;}
@@ -352,7 +315,6 @@ footer{
   #mismatch .grid{grid-template-columns:1fr;gap:40px;}
   .stat-strip{padding-top:24px;}
   nav{padding:18px 22px;}
-  .product-card{left:24px;right:24px;bottom:32px;max-width:none;padding:22px;}
 }
 </style>
 </head>
@@ -467,41 +429,7 @@ footer{
     <div class="eyebrow reveal" style="justify-content:center;">02 — The Solution</div>
     <h2 class="reveal reveal-delay-1"><span class="lead-line">Borealis</span><br><span class="dim-line">is the solution.</span></h2>
     <p class="reveal reveal-delay-2">We could hand you a spec sheet. We would rather walk you through the building.</p>
-    <a href="#halo" class="next-link reveal reveal-delay-3">Meet the ecosystem ⌄</a>
-  </div>
-</section>
-
-<!-- HALO PRODUCT (Three.js) -->
-<section id="halo" class="product-section" data-bg="none">
-  <div class="product-canvas-wrap"><canvas class="three-canvas" id="threeHalo"></canvas></div>
-  <div class="product-header">
-    <h2>BOREALIS HALO</h2>
-  </div>
-  <div class="product-card">
-    <div class="tag">Complete data hall</div>
-    <h3>The data hall, delivered whole.</h3>
-    <div class="status"><span class="status-dot"></span> First wing live in 14 days.</div>
-    <div class="row">
-      <a href="#platform" class="btn btn-outline">Explore Halo →</a>
-      <a href="#cta" class="btn btn-cyan">Reserve now →</a>
-    </div>
-  </div>
-</section>
-
-<!-- VEGA PRODUCT (Three.js) -->
-<section id="vega" class="product-section" data-bg="none">
-  <div class="product-canvas-wrap"><canvas class="three-canvas" id="threeVega"></canvas></div>
-  <div class="product-header">
-    <h2>VEGA AIO</h2>
-  </div>
-  <div class="product-card">
-    <div class="tag">Self-contained</div>
-    <h3>The data center, all in one.</h3>
-    <div class="status"><span class="status-dot"></span> Running in as little as a week.</div>
-    <div class="row">
-      <a href="#platform" class="btn btn-outline">Explore Vega AIO →</a>
-      <a href="#cta" class="btn btn-cyan">Reserve now →</a>
-    </div>
+    <a href="#platform" class="next-link reveal reveal-delay-3">Meet the ecosystem ⌄</a>
   </div>
 </section>
 
@@ -551,7 +479,6 @@ footer{
 
 <footer>BOREALIS · AGT-USA · CORONA, CALIFORNIA</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
