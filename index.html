@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Borealis — Turnkey AI Data Centers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000000;
+  --ink:#f5f6f7;
+  --ink-dim:#8b9097;
+  --ink-faint:#5a5e64;
+  --cyan:#5fd8e8;
+  --orange:#ff6a3d;
+  --line:rgba(255,255,255,0.08);
+  --panel:rgba(255,255,255,0.03);
+  --panel-border:rgba(255,255,255,0.1);
+  --font-display:'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:'IBM Plex Mono', 'Courier New', monospace;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-display);
+  overflow-x:hidden;
+  overflow-y:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+}
+
+/* ===== Loader ===== */
+#loader{
+  position:fixed;inset:0;background:#000;z-index:9999;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity 0.8s ease, visibility 0.8s ease;
+}
+#loader.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+.loader-logo{
+  font-size:14px;letter-spacing:0.3em;color:var(--ink-dim);margin-bottom:24px;
+  font-family:var(--font-mono);
+}
+.loader-pct{
+  font-size:48px;font-weight:600;color:var(--ink);margin-bottom:18px;
+  font-family:var(--font-display);
+}
+.loader-status{
+  font-size:11px;letter-spacing:0.15em;color:var(--ink-faint);
+  font-family:var(--font-mono);text-transform:uppercase;height:16px;
+}
+.loader-bar{
+  width:220px;height:1px;background:var(--line);margin-top:24px;position:relative;overflow:hidden;
+}
+.loader-bar-fill{
+  position:absolute;left:0;top:0;height:100%;background:var(--cyan);width:0%;
+  transition:width 0.2s linear;
+}
+
+/* ===== Global fixed background sphere ===== */
+/* One canvas, pinned behind the entire page. It does not move or
+   reset per-section — only its color cross-fades as you scroll,
+   matching the reference (the sphere itself stays visually still). */
+#bgSphere{
+  position:fixed;
+  top:0;left:0;
+  width:100vw;height:100vh;
+  z-index:0;
+  pointer-events:none;
+  transition:opacity 0.6s ease;
+}
+
+.three-canvas{
+  position:absolute;inset:0;width:100%;height:100%;z-index:1;
+}
+
+/* ===== Nav ===== */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 48px;
+  background:linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
+}
+.nav-logo{
+  font-size:18px;font-weight:600;letter-spacing:0.08em;
+}
+.nav-links{
+  display:flex;gap:36px;align-items:center;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--ink-dim);
+}
+.nav-links a{color:inherit;text-decoration:none;transition:color 0.25s;}
+.nav-links a:hover{color:var(--ink);}
+.nav-cta{
+  border:1px solid var(--panel-border);
+  padding:9px 18px;border-radius:999px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;
+  color:var(--ink);text-decoration:none;text-transform:uppercase;
+  transition:background 0.25s, border-color 0.25s;
+  white-space:nowrap;
+}
+.nav-cta:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.25);}
+@media (max-width:860px){.nav-links{display:none;}}
+
+/* ===== Section base ===== */
+section{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  padding:0 48px;
+  overflow:hidden;
+}
+.section-inner{
+  position:relative;z-index:5;width:100%;max-width:1340px;margin:0 auto;
+}
+
+.eyebrow{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.2em;
+  color:var(--cyan);text-transform:uppercase;
+  display:flex;align-items:center;gap:14px;margin-bottom:22px;
+}
+.eyebrow::after{content:'';flex:0 0 48px;height:1px;background:var(--cyan);opacity:0.4;}
+
+h1,h2{
+  font-family:var(--font-display);
+  font-weight:700;
+  line-height:1.04;
+  letter-spacing:-0.01em;
+}
+.lead-line{color:var(--ink);}
+.dim-line{color:#4a4d52;}
+
+p.body-text{
+  font-family:var(--font-mono);
+  font-size:15px;
+  line-height:1.7;
+  color:var(--ink-dim);
+  max-width:560px;
+}
+
+/* ===== HERO ===== */
+#hero{
+  justify-content:center;text-align:center;padding-top:0;
+}
+.hero-content{position:relative;z-index:5;}
+.hero-logo{
+  font-size:clamp(56px, 11vw, 130px);
+  font-weight:600;
+  letter-spacing:0.04em;
+  margin-bottom:18px;
+  background:linear-gradient(180deg, #fff 0%, #e3e6e8 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-tagline{
+  font-family:var(--font-mono);
+  font-size:13px;letter-spacing:0.35em;
+  color:var(--ink-dim);text-transform:uppercase;
+  margin-bottom:40px;
+}
+.hero-buttons{
+  display:flex;gap:14px;justify-content:center;margin-bottom:28px;flex-wrap:wrap;
+}
+.btn{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;
+  text-transform:uppercase;text-decoration:none;
+  padding:13px 24px;border-radius:999px;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:transform 0.25s, background 0.25s, border-color 0.25s;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn-outline{border:1px solid var(--panel-border);color:var(--ink);}
+.btn-outline:hover{background:rgba(255,255,255,0.06);}
+.btn-solid{background:var(--ink);color:#000;}
+.btn-solid:hover{background:var(--cyan);}
+.btn-cyan{background:var(--cyan);color:#001012;}
+.btn-cyan:hover{filter:brightness(1.1);}
+.hero-stat{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;
+  color:var(--ink-faint);text-transform:uppercase;
+}
+.scroll-cue{
+  position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
+  color:var(--cyan);font-size:20px;
+  animation:bob 2.2s ease-in-out infinite;
+  z-index:5;
+}
+@keyframes bob{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,8px);}}
+
+/* ===== reveal-on-scroll ===== */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.9s cubic-bezier(.16,1,.3,1), transform 0.9s cubic-bezier(.16,1,.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:0.08s;}
+.reveal-delay-2{transition-delay:0.16s;}
+.reveal-delay-3{transition-delay:0.24s;}
+
+/* ===== Section 01: The Mismatch ===== */
+#mismatch .grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;
+}
+#mismatch h2{font-size:clamp(34px,5vw,58px);margin-bottom:28px;}
+.stat-callout{
+  border-left:2px solid var(--orange);padding-left:20px;margin-top:12px;
+}
+.stat-callout .num{font-size:38px;font-weight:700;color:var(--orange);font-family:var(--font-display);}
+.stat-callout p{margin-top:8px;}
+
+.compare-panel{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:28px;backdrop-filter:blur(6px);
+}
+.compare-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:26px;font-family:var(--font-mono);
+}
+.compare-head .label{font-size:11px;letter-spacing:0.12em;color:var(--cyan);text-transform:uppercase;}
+.compare-head .vs{font-size:10px;letter-spacing:0.1em;color:var(--ink-faint);text-transform:uppercase;}
+.bar-row{margin-bottom:22px;}
+.bar-row:last-of-type{margin-bottom:14px;}
+.bar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;font-family:var(--font-mono);}
+.bar-name{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-dim);}
+.bar-name.hl{color:var(--cyan);}
+.bar-value{font-size:13px;color:var(--ink);font-weight:600;}
+.bar-track{height:8px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:3px;width:0%;transition:width 1.4s cubic-bezier(.16,1,.3,1);}
+.bar-fill.air{background:#5a5e64;}
+.bar-fill.crac{background:#5a5e64;}
+.bar-fill.vega{background:var(--cyan);}
+.bar-sub{font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);margin-top:6px;letter-spacing:0.04em;}
+.bar-sub.warn{color:#c0524a;}
+.compare-foot{
+  font-family:var(--font-mono);font-size:10px;color:var(--ink-faint);
+  border-top:1px solid var(--line);padding-top:12px;margin-top:6px;letter-spacing:0.04em;
+}
+
+/* ===== Section 02: Who we are ===== */
+#whoweare .top{max-width:880px;margin-bottom:48px;}
+#whoweare h2{font-size:clamp(32px,4.6vw,54px);margin-bottom:18px;}
+#whoweare .sub{font-family:var(--font-mono);font-size:15px;color:var(--ink-dim);max-width:560px;line-height:1.6;}
+.stat-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:32px;
+  border-top:1px solid var(--line);padding-top:32px;margin-top:36px;
+}
+.stat-item .icon{color:var(--cyan);font-size:18px;margin-bottom:14px;}
+.stat-item .big{font-size:clamp(24px,3vw,32px);font-weight:700;font-family:var(--font-display);}
+.stat-item .small{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);letter-spacing:0.04em;margin-top:6px;line-height:1.4;}
+.logo-strip{
+  display:flex;gap:56px;align-items:center;flex-wrap:wrap;
+  border-top:1px solid var(--line);padding-top:28px;margin-top:36px;
+  opacity:0.55;filter:grayscale(1) brightness(1.6);
+}
+.logo-strip span{font-family:var(--font-display);font-weight:700;font-size:17px;letter-spacing:0.02em;color:var(--ink-dim);}
+@media (max-width:860px){.stat-strip{grid-template-columns:repeat(2,1fr);} .logo-strip{gap:32px;}}
+
+/* ===== Section 03: The Solution ===== */
+#solution{text-align:center;justify-content:center;}
+#solution .section-inner{display:flex;flex-direction:column;align-items:center;}
+#solution h2{font-size:clamp(34px,5.5vw,62px);margin-bottom:26px;}
+#solution p{font-family:var(--font-mono);font-size:15px;color:var(--ink-dim);max-width:520px;margin-bottom:48px;line-height:1.6;}
+.next-link{
+  font-family:var(--font-mono);font-size:12px;letter-spacing:0.18em;color:var(--cyan);
+  text-transform:uppercase;text-decoration:none;display:flex;align-items:center;gap:10px;
+}
+
+/* ===== Product sections (Halo / Vega) ===== */
+.product-section{
+  padding:0;min-height:100vh;
+  background:#000;
+}
+.product-canvas-wrap{
+  position:absolute;inset:0;
+}
+.product-header{
+  position:absolute;top:60px;left:0;right:0;text-align:center;z-index:8;
+}
+.product-header h2{
+  font-size:clamp(40px,7vw,84px);font-weight:600;letter-spacing:0.04em;
+}
+.product-card{
+  position:absolute;left:48px;bottom:60px;z-index:8;
+  background:rgba(8,10,12,0.72);border:1px solid var(--panel-border);
+  border-radius:8px;padding:30px 34px;backdrop-filter:blur(10px);
+  max-width:400px;
+}
+.product-card .tag{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;color:var(--cyan);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.product-card h3{font-size:clamp(26px,3.4vw,34px);line-height:1.1;margin-bottom:14px;font-weight:700;}
+.product-card .status{
+  font-family:var(--font-mono);font-size:12px;color:var(--ink-dim);
+  display:flex;align-items:center;gap:8px;margin-bottom:22px;letter-spacing:0.04em;
+}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse 1.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.product-card .row{display:flex;gap:12px;flex-wrap:wrap;}
+
+/* ===== Section: One platform ===== */
+#platform h2{font-size:clamp(32px,5vw,56px);margin-bottom:18px;}
+#platform > .section-inner > p{font-family:var(--font-mono);font-size:15px;color:var(--ink-dim);max-width:560px;margin-bottom:44px;line-height:1.6;}
+.card-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+}
+.env-card{
+  background:var(--panel);border:1px solid var(--panel-border);
+  border-radius:6px;padding:26px;transition:border-color 0.3s, background 0.3s;
+}
+.env-card:hover{border-color:rgba(95,216,232,0.4);background:rgba(95,216,232,0.04);}
+.env-card .ic{color:var(--cyan);font-size:20px;margin-bottom:16px;}
+.env-card h4{font-size:18px;font-weight:700;margin-bottom:8px;}
+.env-card .range{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--ink-faint);text-transform:uppercase;}
+@media (max-width:860px){.card-grid{grid-template-columns:1fr;}}
+
+/* ===== Section: The Math ===== */
+#math h2{font-size:clamp(32px,5vw,56px);margin-bottom:34px;}
+.math-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  border:1px solid var(--panel-border);border-radius:6px;overflow:hidden;
+  background:var(--panel);margin-bottom:30px;
+}
+.math-cell{padding:30px 32px;border-right:1px solid var(--line);}
+.math-cell:last-child{border-right:none;}
+.math-cell .num{font-size:clamp(28px,4vw,42px);font-weight:700;font-family:var(--font-display);}
+.math-cell .num.cyan{color:var(--cyan);}
+.math-cell .lbl{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);letter-spacing:0.04em;margin-top:8px;line-height:1.4;text-transform:uppercase;}
+#math .closing{font-family:var(--font-mono);font-size:15px;color:var(--ink-dim);max-width:680px;line-height:1.7;}
+@media (max-width:860px){.math-row{grid-template-columns:1fr;}.math-cell{border-right:none;border-bottom:1px solid var(--line);}}
+
+/* ===== Final CTA ===== */
+#cta{text-align:center;justify-content:center;}
+#cta .section-inner{display:flex;flex-direction:column;align-items:center;}
+#cta h2{font-size:clamp(36px,7vw,76px);}
+#cta p{font-family:var(--font-mono);font-size:15px;color:var(--ink-dim);max-width:520px;margin:26px 0 40px;line-height:1.6;}
+.cta-buttons{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+footer{
+  text-align:center;padding:32px 24px;font-family:var(--font-mono);
+  font-size:11px;color:var(--ink-faint);letter-spacing:0.06em;border-top:1px solid var(--line);
+  position:relative;z-index:5;background:#000;
+}
+
+@media (max-width:860px){
+  section{padding:0 24px;}
+  #mismatch .grid{grid-template-columns:1fr;gap:40px;}
+  .stat-strip{padding-top:24px;}
+  nav{padding:18px 22px;}
+  .product-card{left:24px;right:24px;bottom:32px;max-width:none;padding:22px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">BOREALIS</div>
+  <div class="loader-pct" id="loaderPct">0%</div>
+  <div class="loader-status" id="loaderStatus">Booting up cooling system</div>
+  <div class="loader-bar"><div class="loader-bar-fill" id="loaderFill"></div></div>
+</div>
+
+<!-- GLOBAL FIXED BACKGROUND SPHERE (single instance, color cross-fades on scroll) -->
+<canvas id="bgSphere"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">BOREALIS</div>
+  <div class="nav-links">
+    <a href="#mismatch">Systems</a>
+    <a href="#whoweare">Company</a>
+    <a href="#platform">Platform</a>
+    <a href="#math">Math</a>
+  </div>
+  <a href="#cta" class="nav-cta">Talk to an engineer</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" data-bg="default">
+  <div class="hero-content">
+    <div class="hero-logo">BOREALIS</div>
+    <div class="hero-tagline">Turnkey AI Data Centers</div>
+    <div class="hero-buttons">
+      <a href="#platform" class="btn btn-outline">See the systems →</a>
+      <a href="#cta" class="btn btn-outline">Talk to an engineer →</a>
+    </div>
+    <div class="hero-stat">35 years. 5,000+ systems.</div>
+  </div>
+  <div class="scroll-cue">⌄</div>
+</section>
+
+<!-- 01 THE MISMATCH -->
+<section id="mismatch" data-bg="orange">
+  <div class="section-inner">
+    <div class="grid">
+      <div class="reveal">
+        <div class="eyebrow">01 — The Mismatch</div>
+        <h2>
+          <span class="lead-line">One AI rack:</span><br>
+          <span class="lead-line">132 kW.</span><br>
+          <span class="dim-line">Air can't keep up.</span>
+        </h2>
+        <div class="stat-callout">
+          <div class="num">$6.5M</div>
+          <p class="body-text">the capital in one AI rack, idling every month it runs throttled on air.</p>
+        </div>
+      </div>
+      <div class="compare-panel reveal reveal-delay-2">
+        <div class="compare-head">
+          <span class="label">Cooling capacity per unit</span>
+          <span class="vs">Industry average vs Borealis</span>
+        </div>
+        <div class="bar-row">
+          <div class="bar-top"><span class="bar-name">Air conditioning</span><span class="bar-value">120 kW</span></div>
+          <div class="bar-track"><div class="bar-fill air" data-target="24"></div></div>
+          <div class="bar-sub warn">12 kW short of one rack</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-top"><span class="bar-name">CRAC at 48°C</span><span class="bar-value">60 kW</span></div>
+          <div class="bar-track"><div class="bar-fill crac" data-target="12"></div></div>
+          <div class="bar-sub warn">Cannot carry one rack</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-top"><span class="bar-name hl">Borealis Vega AIO</span><span class="bar-value">500 kW</span></div>
+          <div class="bar-track"><div class="bar-fill vega" data-target="100"></div></div>
+          <div class="bar-sub">Three racks · 26% headroom</div>
+        </div>
+        <div class="compare-foot">— One AI rack = 132 kW</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 WHO WE ARE -->
+<section id="whoweare" data-bg="red">
+  <div class="section-inner">
+    <div class="top reveal">
+      <div class="eyebrow">Who we are</div>
+      <h2><span class="lead-line">35 years. 5,000+ systems.</span><br><span class="dim-line">Proven where failure isn't an option.</span></h2>
+      <p class="sub">AGT-USA of Corona, California. Industrial thermal engineering, now building data centers.</p>
+    </div>
+    <div class="stat-strip reveal reveal-delay-1">
+      <div class="stat-item"><div class="icon">◷</div><div class="big">35+</div><div class="small">Years thermal engineering<br>Cooling the names you know</div></div>
+      <div class="stat-item"><div class="icon">◈</div><div class="big">5,000+</div><div class="small">Systems shipped</div></div>
+      <div class="stat-item"><div class="icon">◎</div><div class="big">±0.1°C</div><div class="small">Precision stability</div></div>
+      <div class="stat-item"><div class="icon">❄</div><div class="big">−80°C</div><div class="small">Cascade refrigeration</div></div>
+    </div>
+    <div class="logo-strip reveal reveal-delay-2">
+      <span>Advanced Thermal Sciences</span>
+      <span>HEIDELBERG</span>
+      <span>Raytheon</span>
+      <span>intel</span>
+      <span>technotrans</span>
+    </div>
+  </div>
+</section>
+
+<!-- 03 THE SOLUTION -->
+<section id="solution" data-bg="green">
+  <div class="section-inner">
+    <div class="eyebrow reveal" style="justify-content:center;">02 — The Solution</div>
+    <h2 class="reveal reveal-delay-1"><span class="lead-line">Borealis</span><br><span class="dim-line">is the solution.</span></h2>
+    <p class="reveal reveal-delay-2">We could hand you a spec sheet. We would rather walk you through the building.</p>
+    <a href="#halo" class="next-link reveal reveal-delay-3">Meet the ecosystem ⌄</a>
+  </div>
+</section>
+
+<!-- HALO PRODUCT (Three.js) -->
+<section id="halo" class="product-section" data-bg="none">
+  <div class="product-canvas-wrap"><canvas class="three-canvas" id="threeHalo"></canvas></div>
+  <div class="product-header">
+    <h2>BOREALIS HALO</h2>
+  </div>
+  <div class="product-card">
+    <div class="tag">Complete data hall</div>
+    <h3>The data hall, delivered whole.</h3>
+    <div class="status"><span class="status-dot"></span> First wing live in 14 days.</div>
+    <div class="row">
+      <a href="#platform" class="btn btn-outline">Explore Halo →</a>
+      <a href="#cta" class="btn btn-cyan">Reserve now →</a>
+    </div>
+  </div>
+</section>
+
+<!-- VEGA PRODUCT (Three.js) -->
+<section id="vega" class="product-section" data-bg="none">
+  <div class="product-canvas-wrap"><canvas class="three-canvas" id="threeVega"></canvas></div>
+  <div class="product-header">
+    <h2>VEGA AIO</h2>
+  </div>
+  <div class="product-card">
+    <div class="tag">Self-contained</div>
+    <h3>The data center, all in one.</h3>
+    <div class="status"><span class="status-dot"></span> Running in as little as a week.</div>
+    <div class="row">
+      <a href="#platform" class="btn btn-outline">Explore Vega AIO →</a>
+      <a href="#cta" class="btn btn-cyan">Reserve now →</a>
+    </div>
+  </div>
+</section>
+
+<!-- 04 ONE PLATFORM -->
+<section id="platform" data-bg="purple">
+  <div class="section-inner">
+    <div class="eyebrow reveal">04 — Any environment</div>
+    <h2 class="reveal reveal-delay-1"><span class="lead-line">One platform.</span><br><span class="dim-line">Every floor.</span></h2>
+    <p class="reveal reveal-delay-1">Liquid at the rack, sized to your load. One vendor owns the whole job.</p>
+    <div class="card-grid reveal reveal-delay-2">
+      <div class="env-card"><div class="ic">▤</div><h4>AI &amp; high-density</h4><div class="range">500 kW to multi-MW</div></div>
+      <div class="env-card"><div class="ic">▦</div><h4>Colocation floors</h4><div class="range">Densify in place</div></div>
+      <div class="env-card"><div class="ic">✚</div><h4>Hospitals &amp; healthcare</h4><div class="range">100 to 500 kW</div></div>
+      <div class="env-card"><div class="ic">⚗</div><h4>Labs &amp; research</h4><div class="range">250 kW to 1 MW</div></div>
+      <div class="env-card"><div class="ic">☀</div><h4>Industrial &amp; process</h4><div class="range">100 kW to multi-MW</div></div>
+      <div class="env-card"><div class="ic">⛨</div><h4>Edge &amp; modular</h4><div class="range">100 kW to 1 MW</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 THE MATH -->
+<section id="math" data-bg="blue">
+  <div class="section-inner">
+    <div class="eyebrow reveal">05 — The Math</div>
+    <h2 class="reveal reveal-delay-1"><span class="lead-line">Cooling shouldn't</span><br><span class="dim-line">cost you compute.</span></h2>
+    <div class="math-row reveal reveal-delay-2">
+      <div class="math-cell"><div class="num cyan">$700K</div><div class="lbl">Energy saved per year<br>on a 2 MW hall</div></div>
+      <div class="math-cell"><div class="num">30%</div><div class="lbl">Of cooling power<br>handed back to compute</div></div>
+      <div class="math-cell"><div class="num">$6.5M</div><div class="lbl">Of AI silicon kept off<br>the throttle, per rack</div></div>
+    </div>
+    <p class="closing reveal reveal-delay-3">Heat comes off at the rack, not through the air. The overhead a room-cooled hall burns goes straight back to revenue.</p>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="cta" data-bg="default">
+  <div class="section-inner">
+    <div class="eyebrow reveal" style="justify-content:center;">06 — Let us build it</div>
+    <h2 class="reveal reveal-delay-1"><span class="lead-line">Bring the building.</span><br><span class="dim-line">We bring the rest.</span></h2>
+    <p class="reveal reveal-delay-2">Tell us your load and your floor. We scope it, build it, and stand behind every loop.</p>
+    <div class="cta-buttons reveal reveal-delay-3">
+      <a href="#" class="btn btn-solid">Talk to engineering →</a>
+      <a href="#" class="btn btn-outline">Get a quote</a>
+    </div>
+  </div>
+</section>
+
+<footer>BOREALIS · AGT-USA · CORONA, CALIFORNIA</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
